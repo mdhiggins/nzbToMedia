@@ -2,6 +2,7 @@
 import os
 import sys
 import autoProcessMovie
+from imdb import IMDb
 from readSettings import ReadSettings
 from mkvtomp4 import MkvtoMp4
 from converter import Converter
@@ -10,6 +11,17 @@ from extensions import valid_input_extensions
 print "nzbToCouchPotato"
 
 settings = ReadSettings(os.path.dirname(sys.argv[0]), "autoProcess.ini")
+if len(sys.argv) > 3:
+    path = str(sys.argv[1])
+    for r,d,f in os.walk(path):
+        for files in f:
+            if os.path.splitext(files)[1][1:] in valid_input_extensions:
+                file = os.path.join(r,files)
+                convert = MkvtoMp4(file, settings.ffmpeg, settings.ffprobe, settings.delete, settings.output_extension)
+                print convert.output
+    imdb = IMDb()
+    movie = imdb.get_movie(NZBtoIMDB(sys.argv[2]))
+    print movie['title']
 
 # SABnzbd
 if len(sys.argv) == 8:
@@ -21,17 +33,6 @@ if len(sys.argv) == 8:
 # 5 User-defined category
 # 6 Group that the NZB was posted in e.g. alt.binaries.x
 # 7 Status of post processing. 0 = OK, 1=failed verification, 2=failed unpack, 3=1+2
-    path = str(sys.argv[1])
-    for r,d,f in os.walk(path):
-        for files in f:
-            if os.path.splitext(files)[1][1:] in valid_input_extensions:
-                file = os.path.join(r,files)
-                print file
-                print settings.ffmpeg
-                print settings.ffprobe
-                print settings.delete
-                print settings.output_extension
-                convert = MkvtoMp4(file, settings.ffmpeg, settings.ffprobe, settings.delete, settings.output_extension)
     print "Script triggered from SABnzbd, starting autoProcessMovie..."
     autoProcessMovie.process(sys.argv[1], sys.argv[2], sys.argv[7])
 
@@ -42,10 +43,16 @@ elif len(sys.argv) == 4:
 # 2  The original name of the NZB file
 # 3  The status of the download: 0 == successful
     print "Script triggered from NZBGet, starting autoProcessMovie..."
-
     autoProcessMovie.process(sys.argv[1], sys.argv[2], sys.argv[3])
 
 else:
     print "Invalid number of arguments received from client."
     print "Running autoProcessMovie as a manual run..."
     autoProcessMovie.process('Manual Run', 'Manual Run', 0)
+
+def NZBtoIMDB(nzbName):
+    nzbName=str(nzbName)
+    a=nzbName.find('.cp(tt')+6
+    b=nzbName[a:].find(')')+a
+    imdbid=nzbName[a:b]
+    return imdbid
