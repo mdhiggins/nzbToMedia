@@ -5,18 +5,26 @@ import autoProcessMovie
 from imdb import IMDb
 from readSettings import ReadSettings
 from mkvtomp4 import MkvtoMp4
-from converter import Converter
 from extensions import valid_input_extensions
 
-print "nzbToCouchPotato"
+print "nzbToCouchPotato MP4 edition"
+
+
+def NZBtoIMDB(nzbName):
+    nzbName = str(nzbName)
+    a = nzbName.find('.cp(tt') + 6
+    b = nzbName[a:].find(')') + a
+    imdbid = nzbName[a:b]
+    return imdbid
 
 settings = ReadSettings(os.path.dirname(sys.argv[0]), "autoProcess.ini")
+
 if len(sys.argv) > 3:
     path = str(sys.argv[1])
-    for r,d,f in os.walk(path):
+    for r, d, f in os.walk(path):
         for files in f:
             if os.path.splitext(files)[1][1:] in valid_input_extensions:
-                file = os.path.join(r,files)
+                file = os.path.join(r, files)
                 convert = MkvtoMp4(file, settings.ffmpeg, settings.ffprobe, settings.delete, settings.output_extension)
                 print convert.output
     imdb = IMDb()
@@ -49,10 +57,3 @@ else:
     print "Invalid number of arguments received from client."
     print "Running autoProcessMovie as a manual run..."
     autoProcessMovie.process('Manual Run', 'Manual Run', 0)
-
-def NZBtoIMDB(nzbName):
-    nzbName=str(nzbName)
-    a=nzbName.find('.cp(tt')+6
-    b=nzbName[a:].find(')')+a
-    imdbid=nzbName[a:b]
-    return imdbid
